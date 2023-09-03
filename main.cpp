@@ -26,19 +26,18 @@ void displayMap(){ // The map to be displayed. When the matrix representation of
                /                        \
         (7km,14min,10rs)                 \
              /                            \
-          (2)Mampad---(9km,16min,12rs)    (3)Pookkottumpadam
-           /                 \                /        \
+     (2)Mampad-(9km,16min,12rs)         (3)Pookkottumpadam
           /                   \              /          \
     (9km,17min,10rs)           \   (12km,25min,15rs)   (8km,19min,10rs)----(4)Chokkad
-         |                      \         /                                      |(8km,18min,10rs)
-         |                       \       /                                       |
-  (5)Edavanna--(12km,20min,15rs)-(6)Wandoor------(11km,23min,14rs)-----(7)Kalikavu
-         |                        |                                               \(10km,19min,12rs)
-         |                        |                                                \
+         |                      \         /                                       /(8km,18min,10rs)
+         |                       \       /                                       / 
+ (5)Edavanna--(12km,20min,15rs)-(6)Wandoor------(11km,23min,14rs)------(7)Kalikavu
+         |                         |                                              \(10km,19min,12rs)
+         |                         |                                               \
     (13km,30min,17rs)       (13km,21min,17rs)   (8)Thuvvur-(9km,15min,10rs)--(9)Karuvarakundu
-         |                        |            /                              /
-         |                        |     (10km,20min,10rs)                    /
-         |                        |         /                        (13km,22min,17rs)
+         |                         |           /                              /
+         |                         |    (10km,20min,10rs)                    /
+         |                         |        /                        (13km,22min,17rs)
  (10)Manjeri-(14km,25min,18rs)-(11)Pandikkad                               /
          /                         |        \                             /
     (12km,23min,15rs)              |         (9km,20min,10rs)------(12)Melattur
@@ -87,7 +86,7 @@ void backTrack(int backTrackingArr[], int currentNode, int sourceNode){
     std::cout << " -> " << currentNode+1;
 }
 
-void findShortestPath(int matrix[][NO_OF_NODES][DEPTH]){
+void dijkstra(int matrix[][NO_OF_NODES][DEPTH], int index){
     clearScreen();
     displayMap();
     std::cout << "Enter source city number: ";
@@ -109,70 +108,12 @@ void findShortestPath(int matrix[][NO_OF_NODES][DEPTH]){
         visitedOrNotArr[i] = 0;
     }
 
-    minPathArr[source-1] = 0; //setting the source node distance to zero.
+    minPathArr[source-1] = 0; //setting the source node distance/time/cost value to zero.
     minTimeArr[source-1] = 0; //setting the source node time taken to zero.
 
     int node{-1};
-    int minimumDistance{0};
-    while(visitedOrNotArr[destination-1] != 1){
-        //find the node with the smallest distance from among the non visited nodes.
-        minimumDistance = std::numeric_limits<int>::max();
-        node = -1;
-        for(int i{0}; i < NO_OF_NODES; ++i){
-            if(visitedOrNotArr[i] == 0 && minPathArr[i] < minimumDistance){
-                minimumDistance = minPathArr[i];
-                node = i;
-            }
-        }
-
-        for(int i{0}; i < NO_OF_NODES; ++i){
-            if(matrix[node][i][0] != 0){
-                if(matrix[node][i][0] + minPathArr[node] < minPathArr[i]){
-                    minPathArr[i] = matrix[node][i][0] + minPathArr[node];
-                    minTimeArr[i] = matrix[node][i][1] + minTimeArr[node];
-                    backTrackingArr[i] = node;
-                }
-                //if there are multiple paths with the same distance to reach a specific node from the source, we chooses a path which takes minimum time to reach that specific node from the source.
-                else if(matrix[node][i][0] + minPathArr[node] == minPathArr[i]){
-                    if(matrix[node][i][1] + minTimeArr[node] < minTimeArr[i]){
-                        minTimeArr[i] = matrix[node][i][1] + minTimeArr[node];
-                        backTrackingArr[i] = node;
-                    }
-                }
-            }
-        }
-        visitedOrNotArr[node] = 1;
-    }
-    //Output
-    std::cout << "\nFor travelling from " << source << " to " << destination << ", it takes " << minPathArr[destination-1] << " KM and " << minTimeArr[destination-1] << " minutes.\nPath: ";
-    backTrack(backTrackingArr, destination-1, source-1);
-    std::cout << std::endl;
-}
-
-//Function for finding the minimum time path and minimum cost path using Dijkstra's algorithm
-void findMinTimeOrCostPath(int matrix[][NO_OF_NODES][DEPTH], int index){ //index is used to fetch the time/cost value from the graph matrix.
-    clearScreen();
-    displayMap();
-    std::cout << "Enter source city number: ";
-    int source{0};
-    source = getValidInputOption(NO_OF_NODES);
-    std::cout << "Enter destination city number: ";
-    int destination{0};
-    destination = getValidInputOption(NO_OF_NODES);
-
-    int minPathArr[NO_OF_NODES]{};
-    int backTrackingArr[NO_OF_NODES]{};
-    int visitedOrNotArr[NO_OF_NODES]{0};
-
-    for(int i{0}; i < NO_OF_NODES; ++i){
-        minPathArr[i] = std::numeric_limits<int>::max();
-        backTrackingArr[i] = std::numeric_limits<int>::max();
-        visitedOrNotArr[i] = 0;
-    }
-
-    minPathArr[source-1] = 0; //setting the source node time/cost value to zero.
-    int node{-1};
     int minimumNodeValue{0};
+
     while(visitedOrNotArr[destination-1] != 1){
         //find the node with the smallest distance from among the non visited nodes.
         minimumNodeValue = std::numeric_limits<int>::max();
@@ -183,19 +124,46 @@ void findMinTimeOrCostPath(int matrix[][NO_OF_NODES][DEPTH], int index){ //index
                 node = i;
             }
         }
-        for(int i{0}; i < NO_OF_NODES; ++i){
-            if(matrix[node][i][index] != 0){
-                if(matrix[node][i][index] + minPathArr[node] < minPathArr[i]){
-                    minPathArr[i] = matrix[node][i][index] + minPathArr[node];
-                    backTrackingArr[i] = node;
+        if(!index){ //When finding the shortest path
+            for(int i{0}; i < NO_OF_NODES; ++i){
+                if(matrix[node][i][0] != 0){
+                    if(matrix[node][i][0] + minPathArr[node] < minPathArr[i]){
+                        minPathArr[i] = matrix[node][i][0] + minPathArr[node];
+                        minTimeArr[i] = matrix[node][i][1] + minTimeArr[node];
+                        backTrackingArr[i] = node;
+                    }
+                    //if there are multiple paths with the same distance to reach a specific node from the source, we chooses a path which takes minimum time to reach that specific node from the source.
+                    else if(matrix[node][i][0] + minPathArr[node] == minPathArr[i]){
+                        if(matrix[node][i][1] + minTimeArr[node] < minTimeArr[i]){
+                            minTimeArr[i] = matrix[node][i][1] + minTimeArr[node];
+                            backTrackingArr[i] = node;
+                        }
+                    }
                 }
+            }
+        }
+        else{ //When finding the minimum time/cost path
+            for(int i{0}; i < NO_OF_NODES; ++i){
+                if(matrix[node][i][index] != 0){
+                    if(matrix[node][i][index] + minPathArr[node] < minPathArr[i]){
+                        minPathArr[i] = matrix[node][i][index] + minPathArr[node];
+                        backTrackingArr[i] = node;
+                    }
 
+                }
             }
         }
         visitedOrNotArr[node] = 1;
     }
+
     //Output
-    std::cout << "\nFor travelling from " << source << " to " << destination << ", it takes " << minPathArr[destination-1] << ((index == 1)?" Minutes":" Rupees") << ".\nPath: ";
+    std::cout << "\nFor travelling from " << source << " to " << destination << ", it takes ";
+    if(index == 0){ //For shortest path
+        std::cout << minPathArr[destination-1] << " KM and " << minTimeArr[destination-1] << " minutes.\nPath: ";
+    }
+    else{ //For minimum time/cost path
+        std::cout << minPathArr[destination-1] << ((index == 1)?" Minutes":" Rupees") << ".\nPath: ";
+    }
     backTrack(backTrackingArr, destination-1, source-1);
     std::cout << std::endl;
 }
@@ -238,17 +206,17 @@ int main(){
 
         switch(menuOption){
             case 1:
-                findShortestPath(graph);
+                dijkstra(graph, 0);  // Passing 0 to fetch the distance values from the graph matrix.
                 waitForKeypress();
                 clearScreen();
                 break;
             case 2:
-                findMinTimeOrCostPath(graph, 1); // Passing 1 to fetch the time values from the graph matrix.
+                dijkstra(graph, 1); // Passing 1 to fetch the time values from the graph matrix.
                 waitForKeypress();
                 clearScreen();
                 break;
             case 3:
-                findMinTimeOrCostPath(graph, 2); // Passing 2 to fetch the cost values from the graph matrix.
+                dijkstra(graph, 2); // Passing 2 to fetch the cost values from the graph matrix.
                 waitForKeypress();
                 clearScreen();
                 break;
