@@ -8,8 +8,8 @@
 #include <cstdlib>    // For Linux and other Unix-like systems
 #endif
 
-constexpr int  ROWS{7};    // Change the value when matrix is redeclared
-constexpr int COLUMNS{7};   // Change the value when matrix is redeclared
+constexpr int  ROWS{15};    // Change the value when matrix is redeclared
+constexpr int COLUMNS{15};   // Change the value when matrix is redeclared
 constexpr int DEPTH{3};
 
 void clearScreen() {
@@ -43,14 +43,14 @@ void displayMap(){ // The map to be displayed. When the matrix representation of
          /                         |        \                             /
     (12km,23min,15rs)              |         (9km,20min,10rs)------(12)Melattur
        /                   (15km,32min,20rs)                              \
-  (13)Malappuram                   |                                 (12km,42min,15rs)
+  (13)Malappuram                   |                                 (26km,40min,15rs)
        \                           |                                         \
         (22km,40min,25rs)-----(14)Perinthalmanna------(30km,45min,55rs)--(15)Mannarkkadu)";
     std::cout << map << "\n\n";
 }
 
 void displayMenu(){
-    std::cout << "(1) Find the shortest path      \t\t(2) Find the minimum cost path\n(3) Find the minimum time elapsing path         (4) Exit out of application\n\n";
+    std::cout << "(1) Find the shortest path\t\t(2) Find the minimum time path\n(3) Find the minimum cost path\t\t(4) Exit out of application\n\n";
 }
 
 int getValidMenuOption() {
@@ -150,24 +150,85 @@ void findShortestPath(int matrix[][COLUMNS][DEPTH]){
     std::cout << std::endl;
 }
 
-void findMinCostPath(){
-    std::cout << "Finding minimum cost path\n";
-}
+void findMinTimeOrCostPath(int matrix[][COLUMNS][DEPTH], int index){
+    clearScreen();
+    displayMap();
+    std::cout << "Enter source city number: ";
+    int source{0};
+    std::cin >> source;
+    std::cout << "Enter destination city number: ";
+    int destination{0};
+    std::cin >> destination;
 
-void findMinTimePath(){
-    std::cout << "Finding minimum time path\n";
+    int minPathArr[ROWS]{};
+    int backTrackingArr[ROWS]{};
+    int visitedOrNotArr[ROWS]{0};
+
+    for(int i{0}; i < ROWS; ++i){
+        minPathArr[i] = std::numeric_limits<int>::max();
+        backTrackingArr[i] = std::numeric_limits<int>::max();
+        visitedOrNotArr[i] = 0;
+    }
+
+    minPathArr[source-1] = 0; //setting the source node value to zero.
+
+    int node{-1};
+    int minimumNodeValue{0};
+    while(visitedOrNotArr[destination-1] != 1){
+        //find the node with the smallest distance from among the non visited nodes.
+        minimumNodeValue = std::numeric_limits<int>::max();
+        node = -1;
+        for(int i{0}; i < ROWS; ++i){
+            if(visitedOrNotArr[i] == 0 && minPathArr[i] < minimumNodeValue){
+                minimumNodeValue = minPathArr[i];
+                node = i;
+            }
+        }
+        for(int i{0}; i < ROWS; ++i){
+            if(matrix[node][i][index] != 0){
+                if(matrix[node][i][index] + minPathArr[node] < minPathArr[i]){
+                    minPathArr[i] = matrix[node][i][index] + minPathArr[node];
+                    backTrackingArr[i] = node;
+                }
+
+            }
+        }
+        visitedOrNotArr[node] = 1;
+    }
+    //Output
+    std::cout << "\nFor travelling from " << source << " to " << destination << ", it takes " << minPathArr[destination-1] << ((index == 1)?" Minutes":" Rupees") << ".\nPath: ";
+    backTrack(backTrackingArr, destination-1, source-1);
+    std::cout << std::endl;
 }
 
 int main(){
     //Define the graph
-    int graph[ROWS][COLUMNS][DEPTH]{ // This is a temporary graph representation for testing purposes.
-        {{0,0,0},{6,7,4},{5,4,2},{0,0,0},{0,0,0},{0,0,0},{0,0,0}},
-        {{6,7,4},{0,0,0},{0,0,0},{4,3,7},{5,6,3},{0,0,0},{0,0,0}},
-        {{5,4,2},{0,0,0},{0,0,0},{7,3,4},{0,0,0},{4,4,4},{0,0,0}},
-        {{0,0,0},{4,3,7},{7,3,4},{0,0,0},{0,0,0},{0,0,0},{4,2,6}},
-        {{0,0,0},{5,6,3},{0,0,0},{0,0,0},{0,0,0},{0,0,0},{2,5,7}},
-        {{0,0,0},{0,0,0},{4,4,4},{0,0,0},{0,0,0},{0,0,0},{3,4,6}},
-        {{0,0,0},{0,0,0},{0,0,0},{4,2,6},{2,5,7},{3,4,6},{0,0,0}}
+    // int graph[ROWS][COLUMNS][DEPTH]{ // Testing graph.
+    //     {{0,0,0},{6,7,4},{5,4,2},{0,0,0},{0,0,0},{0,0,0},{0,0,0}},
+    //     {{6,7,4},{0,0,0},{0,0,0},{4,3,7},{5,6,3},{0,0,0},{0,0,0}},
+    //     {{5,4,2},{0,0,0},{0,0,0},{7,3,4},{0,0,0},{4,4,4},{0,0,0}},
+    //     {{0,0,0},{4,3,7},{7,3,4},{0,0,0},{0,0,0},{0,0,0},{4,2,6}},
+    //     {{0,0,0},{5,6,3},{0,0,0},{0,0,0},{0,0,0},{0,0,0},{2,5,7}},
+    //     {{0,0,0},{0,0,0},{4,4,4},{0,0,0},{0,0,0},{0,0,0},{3,4,6}},
+    //     {{0,0,0},{0,0,0},{0,0,0},{4,2,6},{2,5,7},{3,4,6},{0,0,0}}
+    // };
+
+    int graph[ROWS][COLUMNS][DEPTH]{
+        {{0,0,0},{7,14,10},{12,22,15},{0,0,0},{0,0,0},{0,0,0},{0,0,0},{0,0,0},{0,0,0},{0,0,0},{0,0,0},{0,0,0},{0,0,0},{0,0,0},{0,0,0}},
+        {{7,14,10},{0,0,0},{0,0,0},{0,0,0},{9,17,10},{9,16,12},{0,0,0},{0,0,0},{0,0,0},{0,0,0},{0,0,0},{0,0,0},{0,0,0},{0,0,0},{0,0,0}},
+        {{12,22,15},{0,0,0},{0,0,0},{8,19,10},{0,0,0},{12,25,15},{0,0,0},{0,0,0},{0,0,0},{0,0,0},{0,0,0},{0,0,0},{0,0,0},{0,0,0},{0,0,0}},
+        {{0,0,0},{0,0,0},{8,19,10},{0,0,0},{0,0,0},{0,0,0},{8,18,10},{0,0,0},{0,0,0},{0,0,0},{0,0,0},{0,0,0},{0,0,0},{0,0,0},{0,0,0}},
+        {{0,0,0},{9,17,10},{0,0,0},{0,0,0},{0,0,0},{12,20,15},{0,0,0},{0,0,0},{0,0,0},{13,30,17},{0,0,0},{0,0,0},{0,0,0},{0,0,0},{0,0,0}},
+        {{0,0,0},{9,16,12},{12,25,15},{0,0,0},{12,20,15},{0,0,0},{11,23,14},{0,0,0},{0,0,0},{0,0,0},{13,21,17},{0,0,0},{0,0,0},{0,0,0},{0,0,0}},
+        {{0,0,0},{0,0,0},{0,0,0},{8,18,10},{0,0,0},{11,23,14},{0,0,0},{0,0,0},{10,19,12},{0,0,0},{0,0,0},{0,0,0},{0,0,0},{0,0,0},{0,0,0}},
+        {{0,0,0},{0,0,0},{0,0,0},{0,0,0},{0,0,0},{0,0,0},{0,0,0},{0,0,0},{9,15,10},{0,0,0},{10,20,10},{0,0,0},{0,0,0},{0,0,0},{0,0,0}},
+        {{0,0,0},{0,0,0},{0,0,0},{0,0,0},{0,0,0},{0,0,0},{10,19,12},{9,15,10},{0,0,0},{0,0,0},{0,0,0},{13,22,17},{0,0,0},{0,0,0},{0,0,0}},
+        {{0,0,0},{0,0,0},{0,0,0},{0,0,0},{13,30,17},{0,0,0},{0,0,0},{0,0,0},{0,0,0},{0,0,0},{14,25,18},{0,0,0},{12,23,15},{0,0,0},{0,0,0}},
+        {{0,0,0},{0,0,0},{0,0,0},{0,0,0},{0,0,0},{13,21,17},{0,0,0},{10,20,10},{0,0,0},{14,25,18},{0,0,0},{9,20,10},{0,0,0},{15,32,20},{0,0,0}},
+        {{0,0,0},{0,0,0},{0,0,0},{0,0,0},{0,0,0},{0,0,0},{0,0,0},{0,0,0},{13,22,17},{0,0,0},{9,20,10},{0,0,0},{0,0,0},{0,0,0},{26,40,15}},
+        {{0,0,0},{0,0,0},{0,0,0},{0,0,0},{0,0,0},{0,0,0},{0,0,0},{0,0,0},{0,0,0},{12,23,15},{0,0,0},{0,0,0},{0,0,0},{22,40,25},{0,0,0}},
+        {{0,0,0},{0,0,0},{0,0,0},{0,0,0},{0,0,0},{0,0,0},{0,0,0},{0,0,0},{0,0,0},{0,0,0},{15,32,20},{0,0,0},{22,40,25},{0,0,0},{30,45,55}},
+        {{0,0,0},{0,0,0},{0,0,0},{0,0,0},{0,0,0},{0,0,0},{0,0,0},{0,0,0},{0,0,0},{0,0,0},{0,0,0},{12,42,15},{0,0,0},{30,45,55},{0,0,0}}
     };
 
     while(1){
@@ -183,12 +244,12 @@ int main(){
                 clearScreen();
                 break;
             case 2:
-                findMinCostPath();
+                findMinTimeOrCostPath(graph, 1); // Passing 1 to fetch the time values from the matrix
                 waitForKeypress();
                 clearScreen();
                 break;
             case 3:
-                findMinTimePath();
+                findMinTimeOrCostPath(graph, 2); // Passing 2 to fetch the cost values from the matrix.
                 waitForKeypress();
                 clearScreen();
                 break;
